@@ -1,0 +1,6 @@
+your app structure 
+
+chatapp_0                # app name
+ -- chatApp
+ -- env
+ -- web.config
