@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %} {% load crispy_forms_tags %}
+<style>
+    html,
+    body {
+        height: 100%;
+        width: 100%;
+    }
+</style>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'fontawesome-free/css/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    <script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+    <script src="{% static 'js/popper.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/script.min.js' %}"></script>
+</head>
+
+<body class='bg-dark text-light'>
+    <div class="container h-100 d-flex flex-column justify-content-center">
+        <div class="col-md-6 offset-md-3">
+            <div class="card bg-dark card-outline-primary">
+                <div class="card-header">
+                    <h5 class="card-title">Create an Account</h5>
+                </div>
+                <div class="card-body">
+                    <form id="register-frm" action="" method="post">
+                        {% csrf_token %}
+
+                        <div class="form-group">
+                            <label for="firstname" class="control-label">First Name *</label>
+                            <input type="text" class='form-control' name="firstname" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastname" class="control-label">Last Name *</label>
+                            <input type="text" class='form-control' name="lastname" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="username" class="control-label">Username *</label>
+                            <input type="text" class='form-control' name="username" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email" class="control-label">Email *</label>
+                            <input type="email" class='form-control' name="email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password" class="control-label">Password *</label>
+                            <input type="password" class='form-control' name="password" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password_confirmation" class="control-label">Password Confirmation *</label>
+                            <input type="password" class='form-control' name="password_confirmation" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gender" class="control-label">Gender *</label>
+                            <select class='custom-select' name="gender" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="mt-2 d-flex w-100 justify-content-end">
+                                <a class="btn btn-light rounded-0 btn-sm mr-2" href="/login"><i class="fa fa-angle-left"></i> Back to Login</a>
+                                <button class="btn btn-primary rounded-0 btn-sm" type="submit">Create Account</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(function () {
+            $('#register-frm').submit(function (e) {
+                if (!this.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+           
+                //  compare password and password_confirmation
+                //  show an error if they don't match
+                
+                 if ($('#password').val() !== $('#password_confirmation').val()) {
+                     alert('Password and Password Confirmation must match.');
+                     e.preventDefault();
+                     e.stopPropagation();
+                 }
+                $('#register-frm').addClass('was-validated');
+            });
+        });
+    </script>
+</body>
+
+</html>

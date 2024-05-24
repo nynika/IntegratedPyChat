@@ -1,0 +1,185 @@
+{% block content %}
+
+<div class="p-10 lg:p-20 text-center">
+    <h1 class="text-3xl lg:text-6xl text-white">{{ room.name }}</h1>
+</div>
+
+<div class="lg:w-2/4 mx-4 lg:mx-auto p-4 bg-white rounded-xl chat-container">
+    <div class="chat-messages space-y-3" id="chat-messages">
+        {% for m in messages %}
+            <div class="message {% if m.user == request.user %}message-right{% else %}message-left{% endif %}">
+                <b class="username">{{ m.user.username }}</b>: <span class="content">{{ m.content }}</span>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="lg:w-2/4 mt-6 mx-4 lg:mx-auto p-4 bg-white rounded-xl chat-input-container">
+    <form method="post" action="." class="flex">
+        <input type="text" name="content" class="flex-1 mr-3 chat-input" placeholder="Your message..." id="chat-message-input">
+        <button class="px-5 py-3 rounded-xl text-white bg-teal-600 hover:bg-teal-700 chat-submit" id="chat-message-submit">Submit</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ room.slug|json_script:"json-roomname" }}
+{{ request.user.username|json_script:"json-username" }}
+
+<script>
+    const roomName = JSON.parse(document.getElementById('json-roomname').textContent);
+    const userName = JSON.parse(document.getElementById('json-username').textContent);
+    const chatSocket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/'
+        + roomName
+        + '/'
+    );
+
+    chatSocket.onclose = function(e) {
+        console.log('onclose');
+    }
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+
+        if (data.message) {
+            const messageContainer = document.querySelector('#chat-messages');
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            if (data.username === userName) {
+                messageElement.classList.add('message-right');
+            } else {
+                messageElement.classList.add('message-left');
+            }
+            messageElement.innerHTML = '<b class="username">' + data.username + '</b>: <span class="content">' + data.message + '</span>';
+            messageContainer.appendChild(messageElement);
+        }
+
+        scrollToBottom();
+    };
+
+    document.querySelector('#chat-message-input').focus();
+    document.querySelector('#chat-message-input').onkeyup = function(e) {
+        if (e.keyCode === 13) {
+            document.querySelector('#chat-message-submit').click();
+        }
+    };
+
+    document.querySelector('#chat-message-submit').onclick = function(e) {
+        e.preventDefault();
+
+        const messageInputDom = document.querySelector('#chat-message-input');
+        const message = messageInputDom.value.trim();
+
+        if (message !== '') {
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'username': userName,
+                'room': roomName
+            }));
+
+            messageInputDom.value = '';
+        }
+
+        return false;
+    };
+
+    function scrollToBottom() {
+        let objDiv = document.getElementById("chat-messages");
+        objDiv.scrollTop = objDiv.scrollHeight;
+    }
+    scrollToBottom();
+</script>
+{% endblock %}
+
+<style>
+/* Chat Container */
+.chat-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: linear-gradient(to bottom, #ffffff, #e6f7ff);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    padding: 20px;
+}
+
+/* Chat Messages */
+.chat-messages {
+    max-height: 450px;
+    overflow-y: auto;
+    padding: 20px;
+    border-radius: 10px;
+    background: #f9fafb;
+}
+
+/* Individual Message */
+.message {
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    max-width: 70%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Message from Others */
+.message-left {
+    background-color: #e0f7fa;
+    text-align: left;
+}
+
+/* Message from Logged-in User */
+.message-right {
+    background-color: #c8e6c9;
+    text-align: right;
+    margin-left: auto;
+}
+
+/* Username */
+.username {
+    font-weight: bold;
+    color: #00796b;
+}
+
+/* Content */
+.content {
+    color: #37474f;
+}
+
+/* Chat Input Container */
+.chat-input-container {
+    max-width: 800px;
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Chat Input */
+.chat-input {
+    width: calc(100% - 120px);
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+}
+
+/* Chat Submit Button */
+.chat-submit {
+    width: 100px;
+    padding: 15px 20px;
+    border: none;
+    border-radius: 8px;
+    background-color: #00796b;
+    color: #ffffff;
+    cursor: pointer;
+    margin-top: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.chat-submit:hover {
+    background-color: #004d40;
+}
+</style>

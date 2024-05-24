@@ -1,0 +1,398 @@
+{% extends 'chat/base.html' %}
+{% load static %}
+
+{% block header %}
+<style>
+    
+    .bgDark {
+        background-color: whitesmoke;
+        color: black;
+        text-decoration: none;
+    }
+
+    .bgDark:hover {
+        background-color: rgb(22, 118, 207);
+        color: white;
+        text-decoration: none;
+        font-weight: 500;  
+        border-radius: 20px !important;     
+    }
+
+    .bg-primary {
+        background-color: rgb(22, 118, 207)!important;
+        color: #fff;
+        font-weight: 500;   
+        border-radius: 20px !important;  
+    }
+
+    .list-group-item {
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+ .chat-bubble {
+    min-width: 20%;
+    max-width: 50%;
+    padding: 5px 15px;
+    border-radius: 20px !important; 
+}
+
+
+    #user-list a:hover * {
+        text-decoration: none;
+    }
+
+
+    .container {
+        display: flex;
+        height: 90vh;
+        width: 100%;
+        text-decoration: none;
+
+    }
+
+ .user-list-column {
+        flex: 0 0 25%;
+        border-right: 1px solid #ccc;
+        overflow-y: auto;
+        background-color: #fff;
+        text-decoration: none;
+        position: absolute; 
+        left: 0.5%; 
+        height: 100%;    
+    } 
+
+ .chat-box-column {
+        flex: 2;
+        overflow-y: auto;
+        background-color: white;
+        max-width: 115%;
+        min-width: 115%;
+        position: relative; 
+        left: 5%; 
+    }
+
+    .chat-box {
+        height: 80%;
+        overflow-y: auto;
+       
+    }
+    
+    .chat {
+        background-color: rgb(132, 136, 139);
+    }
+
+    #search-box {
+        margin-top: 2px;
+        margin-right: 10px;
+    }
+
+    #search-input {
+        width: 218px;
+    }
+
+    #search-icon {
+        color: black;
+    }
+
+    .form-control {
+        background-color: white;
+    }
+
+/*     body {
+        background: url('https://images.pexels.com/photos/33545/sunrise-phu-quoc-island-ocean.jpg?cs=srgb&dl=pexels-pixabay-33545.jpg&fm=jpg') no-repeat center center fixed;
+        background-size: cover;
+    
+    } */
+
+    body {
+        margin: 0;
+        overflow: hidden;
+    }
+
+</style>
+
+
+<!-- grp style  -->
+
+<style>
+
+    #room-list {
+        height: 200px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+    }
+
+    .room-link {
+        display: block;
+        padding: 10px;
+        margin-bottom: 5px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        text-decoration: none;
+        color: #333;
+        background-color: #f9f9f9;
+    }
+
+    .room-link:hover {
+        background-color: #e9e9e9;
+    }
+
+    .room-link i {
+        float: right;
+    }
+</style>
+{% endblock %}
+
+
+
+{% block content %}
+<div class="container">
+    <div class="user-list-column">
+        <div class="list-group" id='user-list-wrapper'>
+
+            <form class="form-inline mb-3" id="search-box">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="search-input" placeholder="Search users...">
+                    <div class="input-group-append">
+                        <span class="input-group-text" id="search-icon"><i class="fa fa-search"></i></span>
+                    </div>
+                </div>
+            </form>
+
+        <div class="mb-3">
+            <div id="room-list" class="room-list">
+                {% for room in rooms %}
+                <a href="{% url 'room' room.slug %}" class="room-link">
+                    <i class="fa fa-users"></i>
+                    <span>{{ room.name }}</span> 
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        
+            <div id='user-list' style="height: 100%; overflow-y: auto; text-decoration: none">
+                {% for u in users %}
+                {% if not u.id == 1 and not u.id == user.id %}
+                <a class="list-group-item {% if u.id != chat_id %}bgDark{% else %}bg-primary{% endif %} "
+                    href="{% url 'chat-home' %}?u={{u.id}}">
+                    <div>
+                        <p>{{u.first_name}} {{u.last_name}} {{u.username}}</p>
+                    </div>
+                </a>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Box Column -->
+    <div class="chat-box-column">
+        {% if not chat_id > 0 %}
+        <div class="h-100 d-flex flex-column justify-content-center align-items-center">
+            <h3>Start Chat now</h3>
+            <p><small class="text-muted">Please select a person to chat with.</small></p>
+        </div>
+        {% else %}
+        
+        <div id="chat-box-field" class="h-100" >
+ 
+       <!--   style="background: url('https://images.pexels.com/photos/33545/sunrise-phu-quoc-island-ocean.jpg?cs=srgb&dl=pexels-pixabay-33545.jpg&fm=jpg') no-repeat center center fixed;
+        background-size: cover;" -->
+
+            <div class="chat-box">
+                {% for chat in chats %}
+                {% if chat.user_from == user %}
+                <div class="p-2 w-100 d-flex justify-content-end">
+                    <div class=" chat-bubble  ml-2 mb-2 bg-primary text-light rounded" data-id="{{chat.id}}" style="border-radius: 20px;">
+                        <p>{{chat.message}}</p>
+                        <div class="d-flex justify-content-between">
+                            <!-- <small>You</small> -->
+                            <p> {{ chat.user_from }} {{ chat.user_from.first_name }} {{ chat.user_from.last_name }}</p>
+                            <small>{{chat.date_created|date:"M-d-Y H:i"}}</small>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="p-2 w-100 d-flex justify-content-start">
+                    <div class="chat-bubble mr-2 mb-2 bg-light text-dark rounded" data-id="{{chat.id}}">
+                        <p>{{chat.message}}</p>
+                        <div class="d-flex justify-content-between">
+                            <!-- <small>Sender</small> -->
+                            <p> {{ chat.user_from }} {{ chat.user_from.first_name }} {{ chat.user_from.last_name }}</p>
+                            <small>{{chat.date_created|date:"M-d-Y H:i"}}</small>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+
+            </div>
+            <div class="chat-box-form border-top p-2" style="top: 8%; position: relative;">
+                <form action="" id="chat-submit" class="h-100 d-flex ">
+                    <input type="hidden" name="user_from" value="{{ user.id }}">
+                    <input type="hidden" name="user_to" value="{{ chat_id }}">
+
+                  <div class="col-md-10 h-200" >
+                  <textarea name="message" id="" class="h-100 w-100 form-control" placeholder="Write your message here"></textarea>
+                 </div> 
+                    <button class="button btn btn-primary h-100 w-70 justify-content-center align-items-center d-flex" style="position: relative; top: 10px;">SEND</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+
+<script>
+    // initial setup
+    $(function () {
+        if ($('.chat-bubble:last').length > 0) {
+            $('.chat-box').animate({
+                scrollTop: $('.chat-bubble:last').offset().top
+            }, 'fast')
+        }
+        // form submission
+        $('#chat-submit').submit(function (e) {
+            e.preventDefault()
+            start_loader()
+            $.ajax({
+                headers: {
+                    "X-CSRFToken": '{{csrf_token}}'
+                },
+                url: "{% url 'chat-send' %}",
+                method: "POST",
+                data: $(this).serialize(),
+                dataType: "json",
+                error: err => {
+                    console.log(err)
+                    alert('an error occured')
+                },
+                success: function (resp) {
+                    if (typeof resp == "object" && resp.status == 'success') {
+                        location.reload()
+                    } else {
+                        consol.log(resp)
+                        alert('an error occured')
+                    }
+                }
+            })
+        })
+
+        // real-time  msg update
+        chats_renew()
+        setInterval(() => {
+            chats_renew()
+        }, 2500)
+
+    })
+
+    $(function () {
+        // Function to filter user list based on search input
+        function filterUserList(searchText) {
+            $('.list-group-item').hide();
+
+            // Show only items that match the search text
+            $('.list-group-item').filter(function () {
+                return $(this).text().toLowerCase().includes(searchText);
+            }).show();
+        }
+
+        // Click event handler for the search button
+        $('#search-icon').on('click', function () {
+            var searchText = $('#search-input').val().toLowerCase();
+            filterUserList(searchText);
+        });
+
+        // Keyup event handler for real-time search
+        $('#search-input').on('keyup', function () {
+            var searchText = $(this).val().toLowerCase();
+            filterUserList(searchText);
+        });
+
+        // Action when search icon is clicked
+        $('#search-icon').on('click', function () {
+            alert('users available or not');
+        });
+    });
+
+    $(function () {
+        // Add an event listener for Enter key press in the textarea
+        $('#chat-box-field textarea').on('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) 
+            {
+                e.preventDefault(); // Prevents a new line in the textarea
+                $('#chat-submit').submit(); // Submit the form
+            }
+        });
+    });
+
+    function chats_renew() {
+        var last_id = 0;
+        if ($('.chat-bubble').length > 0)
+            last_id = $('.chat-bubble:last').attr('data-id');
+        $.ajax({
+            headers: {
+                "X-CSRFToken": '{{csrf_token}}'
+            },
+            url: "{% url 'chat-renew' %}",
+            method: "POST",
+            data: {
+                last_id: last_id,
+                user_id: '{{user.id}}',
+                chat_id: '{{chat_id}}'
+           },
+
+            dataType: 'json',
+            error: err => {
+                console.log(err);
+                // alert('an error occurred');
+            },
+            success: function (resp) {
+                if (Object.keys(resp).length > 0) {
+                    var chatBox = $('.chat-box');
+                    Object.keys(resp).map(k => {
+                        var bubble;
+                        if (resp[k].id.user_from == '{{user.id}}') {
+                            bubble = '<div class="p-2 w-100 d-flex justify-content-end chat-bubble">' +
+                                '<div class="ml-2 mb-2 bg-primary text-light rounded" data-id="' + resp[k].id + '">' +
+                                '<p>' + resp[k].message + '</p>' +
+                                ' <div class="d-flex justify-content-between"><small>You</small> <small>' + resp[k].date_created + '</small></div>' +
+                                ' </div>' +
+                                ' </div>';
+                        } else {
+                            bubble = '<div class="p-2 w-100 d-flex justify-content-start chat-bubble">' +
+                                '<div class="mr-2 mb-2 bg-light text-dark rounded"  data-id="' + resp[k].id + '">' +
+                                ' <p>' + resp[k].message + '</p>' +
+                                ' <div class=" d-flex justify-content-between"><small>Sender</small> <small>' + resp[k].date_created + '</small></div>' +
+                                '</div>' +
+                                '</div>';
+                        }
+                        chatBox.append(bubble);
+                    });
+                    // Scroll to the bottom after new messages are added
+                    chatBox.animate({
+                        scrollTop: chatBox.prop('scrollHeight')
+                    }, 'fast');
+                }
+            }
+        });
+    }
+
+</script>
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
