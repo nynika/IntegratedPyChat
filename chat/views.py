@@ -1,5 +1,5 @@
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from .forms import UserRegistrationForm
 from django.contrib.auth.decorators import login_required
@@ -11,28 +11,35 @@ import json,datetime
 from django.core import serializers
 from .models import Room, Message
 
-
-
-# Create your views here.
 @login_required
 def home(request):
     User = get_user_model()
     users = User.objects.all()
     rooms = Room.objects.all()  # to get all rooms
-    chats = {}
+    
+    chats = []
+   # room_messages = []
+
     if request.method == 'GET' and 'u' in request.GET:
-        # chats = chatMessages.objects.filter(Q(user_from=request.user.id & user_to=request.GET['u']) | Q(user_from=request.GET['u'] & user_to=request.user.id))
-        chats = chatMessages.objects.filter(Q(user_from=request.user.id, user_to=request.GET['u']) | Q(user_from=request.GET['u'], user_to=request.user.id))
-        chats = chats.order_by('date_created')
+        # Fetching private messages
+        chats = chatMessages.objects.filter(
+            Q(user_from=request.user.id, user_to=request.GET['u']) | 
+            Q(user_from=request.GET['u'], user_to=request.user.id)
+        ).order_by('date_created')
+   # elif request.method == 'GET' and 'room' in request.GET:
+        # Fetching group messages
+       # room = get_object_or_404(Room, id=request.GET['room'])
+       # room_messages = Message.objects.filter(room=room).order_by('date_added')[:25]
     context = {
-        "page":"home",
-        "users":users,
-        "chats":chats,
+        "page": "home",
+        "users": users,
+        "chats": chats,
         "rooms": rooms,  # room context
-        "chat_id": int(request.GET['u'] if request.method == 'GET' and 'u' in request.GET else 0)
+       # "room_messages": room_messages,
+        "chat_id": int(request.GET.get('u', 0)),
+      #  "room_id": int(request.GET.get('room', 0)),
     }
-    print(request.GET['u'] if request.method == 'GET' and 'u' in request.GET else 0)
-    return render(request,"chat/home.html",context)
+    return render(request, "chat/home.html", context)
 
 def register(request):
     if request.method == 'POST':
@@ -53,15 +60,12 @@ def register(request):
         }
     return render(request,"chat/register.html",context)
 
-
-
 @login_required
 def profile(request):
     context = {
         "page":"profile",
     }
     return render(request,"chat/profile.html",context)
-
 
 def get_messages(request):
     last_id = request.POST.get('last_id')
@@ -107,8 +111,32 @@ def send_chat(request):
 
     return HttpResponse(json.dumps(resp), content_type="application/json")
 
-""" grp chat """
+""" 
+def send_chat(request):
+    if request.method == 'POST':
+        user_from_id = request.POST.get('user_from')
+        message = request.POST.get('message')
+        if 'user_to' in request.POST:  # Single chat
+            user_to_id = request.POST.get('user_to')
+            user_to = get_object_or_404(get_user_model(), id=user_to_id)
+            user_from = get_object_or_404(get_user_model(), id=user_from_id)
+            chat_message = chatMessages(user_from=user_from, user_to=user_to, message=message)
+            chat_message.save()
+            return JsonResponse({'status': 'success'})
+        elif 'room' in request.POST:  # Group chat
+            room_id = request.POST.get('room')
+            room = get_object_or_404(Room, id=room_id)
+            user_from = get_object_or_404(get_user_model(), id=user_from_id)
+            members = room.members.all()
+            for member in members:
+                message = Message(room=room, user=user_from, content=message)
+                message.save()
+            return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'failed'}) """
 
+
+""" grp chat """
+                                                
 @login_required
 def rooms(request):
     rooms = Room.objects.all()
@@ -119,6 +147,5 @@ def room(request, slug):
     room = Room.objects.get(slug=slug)
     messages = Message.objects.filter(room=room)[0:25]
     return render(request, 'chat/room.html', {'room': room, 'messages': messages})
-
 
 
