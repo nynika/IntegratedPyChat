@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block header %}
+
 <style>
     
     .bgDark {
@@ -11,18 +12,19 @@
     }
 
     .bgDark:hover {
-        background-color: rgb(22, 118, 207);
+      /*   background-color: rgb(22, 118, 207); */
+      background-color: rgb(132, 136, 139);
         color: white;
         text-decoration: none;
         font-weight: 500;  
-        border-radius: 20px !important;     
+        /* border-radius: 20px !important;   */   
     }
 
     .bg-primary {
         background-color: rgb(22, 118, 207)!important;
         color: #fff;
         font-weight: 500;   
-        border-radius: 20px !important;  
+        /* border-radius: 20px !important;   */
     }
 
     .list-group-item {
@@ -36,19 +38,15 @@
     padding: 5px 15px;
     border-radius: 20px !important; 
 }
-
-
     #user-list a:hover * {
         text-decoration: none;
     }
-
 
     .container {
         display: flex;
         height: 90vh;
         width: 100%;
         text-decoration: none;
-
     }
 
  .user-list-column {
@@ -114,7 +112,6 @@
 
 
 <!-- grp style  -->
-
 <style>
 
     #room-list {
@@ -122,7 +119,7 @@
         overflow-y: auto;
         border: 1px solid #ccc;
         border-radius: 5px;
-        padding: 10px;
+        padding: 5px;
     }
 
     .room-link {
@@ -147,12 +144,10 @@
 {% endblock %}
 
 
-
 {% block content %}
 <div class="container">
     <div class="user-list-column">
         <div class="list-group" id='user-list-wrapper'>
-
             <form class="form-inline mb-3" id="search-box">
                 <div class="input-group">
                     <input type="text" class="form-control" id="search-input" placeholder="Search users...">
@@ -162,25 +157,25 @@
                 </div>
             </form>
 
-        <div class="mb-3">
-            <div id="room-list" class="room-list">
-                {% for room in rooms %}
-                <a href="{% url 'room' room.slug %}" class="room-link">
-                    <i class="fa fa-users"></i>
-                    <span>{{ room.name }}</span> 
-                </a>
-                {% endfor %}
+            <!-- Group chat start -->
+            <div class="mb-3">
+                <div id="room-list" class="room-list">
+                    {% for room in rooms %}
+                    <a href="{%url 'room' room.slug %}?room={{ room.id }}" class="room-link">
+                        <i class="fa fa-users"></i>
+                        <span>{{ room.name }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
             </div>
-        </div>
-        
+            <!-- Group chat end -->
+
             <div id='user-list' style="height: 100%; overflow-y: auto; text-decoration: none">
                 {% for u in users %}
+              
                 {% if not u.id == 1 and not u.id == user.id %}
-                <a class="list-group-item {% if u.id != chat_id %}bgDark{% else %}bg-primary{% endif %} "
-                    href="{% url 'chat-home' %}?u={{u.id}}">
-                    <div>
-                        <p>{{u.first_name}} {{u.last_name}} {{u.username}}</p>
-                    </div>
+             
+                  <a class="list-group-item {% if u.id != chat_id %}bgDark{% else %}bg-primary{% endif %}"  href="{% url 'chat-home' %}?u={{u.id}}">  <i class="fa fa-user" ></i>                    <div><p>{{u.first_name}} {{u.last_name}} {{u.username}}</p></div>
                 </a>
                 {% endif %}
                 {% endfor %}
@@ -190,27 +185,22 @@
 
     <!-- Chat Box Column -->
     <div class="chat-box-column">
-        {% if not chat_id > 0 %}
+        {% if not chat_id > 0 and not room_id > 0 %}
         <div class="h-100 d-flex flex-column justify-content-center align-items-center">
             <h3>Start Chat now</h3>
-            <p><small class="text-muted">Please select a person to chat with.</small></p>
+            <p><small class="text-muted">Please select a person to chat with or a room to join.</small></p>
         </div>
         {% else %}
-        
-        <div id="chat-box-field" class="h-100" >
- 
-       <!--   style="background: url('https://images.pexels.com/photos/33545/sunrise-phu-quoc-island-ocean.jpg?cs=srgb&dl=pexels-pixabay-33545.jpg&fm=jpg') no-repeat center center fixed;
-        background-size: cover;" -->
-
+        <div id="chat-box-field" class="h-100">
             <div class="chat-box">
+                <!-- Private messages -->
                 {% for chat in chats %}
                 {% if chat.user_from == user %}
                 <div class="p-2 w-100 d-flex justify-content-end">
-                    <div class=" chat-bubble  ml-2 mb-2 bg-primary text-light rounded" data-id="{{chat.id}}" style="border-radius: 20px;">
+                    <div class="chat-bubble ml-2 mb-2 bg-primary text-light rounded" data-id="{{chat.id}}" style="border-radius: 20px;">
                         <p>{{chat.message}}</p>
                         <div class="d-flex justify-content-between">
-                            <!-- <small>You</small> -->
-                            <p> {{ chat.user_from }} {{ chat.user_from.first_name }} {{ chat.user_from.last_name }}</p>
+                            <p>{{ chat.user_from }} {{ chat.user_from.first_name }} {{ chat.user_from.last_name }}</p>
                             <small>{{chat.date_created|date:"M-d-Y H:i"}}</small>
                         </div>
                     </div>
@@ -220,8 +210,7 @@
                     <div class="chat-bubble mr-2 mb-2 bg-light text-dark rounded" data-id="{{chat.id}}">
                         <p>{{chat.message}}</p>
                         <div class="d-flex justify-content-between">
-                            <!-- <small>Sender</small> -->
-                            <p> {{ chat.user_from }} {{ chat.user_from.first_name }} {{ chat.user_from.last_name }}</p>
+                            <p>{{ chat.user_from }} {{ chat.user_from.first_name }} {{ chat.user_from.last_name }}</p>
                             <small>{{chat.date_created|date:"M-d-Y H:i"}}</small>
                         </div>
                     </div>
@@ -229,17 +218,35 @@
                 {% endif %}
                 {% endfor %}
 
+                <!-- Group chat messages -->
+
+<!--      <div id="chat-messages">
+        {% for message in room_messages %}
+            <div class="message {% if message.user == request.user %}message-right{% else %}message-left{% endif %}">
+                <b class="{% if message.user == request.user %}rightusername{% else %}leftusername{% endif %}">
+                    {{ message.user.username }}
+                </b>: <span class="content">{{ message.content }}</span>
+                <small>{{ message.date_created|date:"M-d-Y H:i" }}</small>
             </div>
+        {% endfor %}
+    </div> -->
+            </div>
+
+
             <div class="chat-box-form border-top p-2" style="top: 8%; position: relative;">
-                <form action="" id="chat-submit" class="h-100 d-flex ">
+             <form action="." method="post" id="chat-submit" class="h-100 d-flex" data-url="{% url 'chat-send' %}"> 
                     <input type="hidden" name="user_from" value="{{ user.id }}">
                     <input type="hidden" name="user_to" value="{{ chat_id }}">
+                    <input type="hidden" name="room" value="{{ room_id }}">
 
-                  <div class="col-md-10 h-200" >
-                  <textarea name="message" id="" class="h-100 w-100 form-control" placeholder="Write your message here"></textarea>
-                 </div> 
+                    <div class="col-md-10 h-200">
+                        <textarea name="message" id="" class="h-100 w-100 form-control" placeholder="Message "></textarea>
+                    </div>
+
                     <button class="button btn btn-primary h-100 w-70 justify-content-center align-items-center d-flex" style="position: relative; top: 10px;">SEND</button>
-                </form>
+                </form>  
+
+  
             </div>
         </div>
         {% endif %}
@@ -250,47 +257,51 @@
 {% block footer %}
 
 <script>
-    // initial setup
-    $(function () {
-        if ($('.chat-bubble:last').length > 0) {
-            $('.chat-box').animate({
-                scrollTop: $('.chat-bubble:last').offset().top
-            }, 'fast')
-        }
-        // form submission
-        $('#chat-submit').submit(function (e) {
-            e.preventDefault()
-            start_loader()
-            $.ajax({
-                headers: {
-                    "X-CSRFToken": '{{csrf_token}}'
-                },
-                url: "{% url 'chat-send' %}",
-                method: "POST",
-                data: $(this).serialize(),
-                dataType: "json",
-                error: err => {
-                    console.log(err)
-                    alert('an error occured')
-                },
-                success: function (resp) {
-                    if (typeof resp == "object" && resp.status == 'success') {
-                        location.reload()
-                    } else {
-                        consol.log(resp)
-                        alert('an error occured')
-                    }
+   
+   $(function () {
+    $('#chat-submit').submit(function (e) {
+        e.preventDefault(); 
+        const formData = {
+            'user_from': $('[name="user_from"]').val(),
+            'user_to': $('[name="user_to"]').val(), // For single chat
+            'room': $('[name="room"]').val(),       // For group chat
+            'message': $('[name="message"]').val()
+        };
+
+        const url = $(this).data('url'); // Get the URL from the form's data attribute
+
+        // Send an AJAX request to the server
+        $.ajax({
+            headers: {
+                "X-CSRFToken": '{{csrf_token}}'
+            },
+            url: url,
+            method: "POST",
+            data: formData,
+            dataType: "json",
+            error: err => {
+                console.log(err);
+                alert('An error occurred while sending the message.');
+            },
+            success: function (resp) {
+                if (typeof resp == "object" && resp.status == 'success') {
+                    location.reload(); // Reload the page on successful submission
+                } else {
+                    console.log(resp);
+                    alert('An error occurred while sending the message.');
                 }
-            })
-        })
+        }
+    });
+});
 
-        // real-time  msg update
-        chats_renew()
-        setInterval(() => {
-            chats_renew()
-        }, 2500)
 
-    })
+    // real-time  msg update
+    chats_renew()
+    setInterval(() => {
+    chats_renew()
+    }, 2500)
+});
+
 
     $(function () {
         // Function to filter user list based on search input
@@ -385,6 +396,80 @@
     }
 
 </script>
+
+
+{% block scripts %}
+{{ room.slug|json_script:"json-roomname" }}
+{{ request.user.username|json_script:"json-username" }}
+
+<script>
+    const roomName = JSON.parse(document.getElementById('json-roomname').textContent);
+    const userName = JSON.parse(document.getElementById('json-username').textContent);
+    const chatSocket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/'
+        + roomName
+        + '/'
+    );
+
+    chatSocket.onclose = function(e) {
+        console.log('onclose');
+    }
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+
+        if (data.message) {
+            const messageContainer = document.querySelector('#chat-messages');
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            if (data.username === userName) {
+                messageElement.classList.add('message-right');
+            } else {
+                messageElement.classList.add('message-left');
+            }
+            messageElement.innerHTML = '<b class="username">' + data.username + '</b>: <span class="content">' + data.message + '</span>';
+            messageContainer.appendChild(messageElement);
+        }
+
+        scrollToBottom();
+    };
+
+    document.querySelector('#chat-message-input').focus();
+    document.querySelector('#chat-message-input').onkeyup = function(e) {
+        if (e.keyCode === 13) {
+            document.querySelector('#chat-message-submit').click();
+        }
+    };
+
+    document.querySelector('#chat-message-submit').onclick = function(e) {
+        e.preventDefault();
+
+        const messageInputDom = document.querySelector('#chat-message-input');
+        const message = messageInputDom.value.trim();
+
+        if (message !== '') {
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'username': userName,
+                'room': roomName
+            }));
+
+            messageInputDom.value = '';
+        }
+
+        return false;
+    };
+
+    function scrollToBottom() {
+        let objDiv = document.getElementById("chat-messages");
+        objDiv.scrollTop = objDiv.scrollHeight;
+    }
+    scrollToBottom();
+</script>
+
+{% endblock %}
 
 {% endblock %}
 
