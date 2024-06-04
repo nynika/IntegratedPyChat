@@ -14,8 +14,7 @@ urlpatterns = [
     path('send/', views.send_chat, name='chat-send'),
     path('renew/', views.get_messages, name='chat-renew'),
     path('rooms/', views.rooms, name='rooms'),
-    path('rooms/<slug:slug>/', views.room, name='room'),
-    
+    path('rooms/<slug:slug>/', views.room, name='room'),   
 ]
 
 
