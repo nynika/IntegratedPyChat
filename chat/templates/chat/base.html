@@ -37,6 +37,11 @@
 
 <body class='text-light'>
     <nav class="navbar navbar-expand-lg navbar-dark  w-100 border-bottom border-primary mb-2" id="top-nav">
+
+        {% load static %}
+
+<img src="{% static '../static/images/relalogo.jpg' %}" alt="Logo" style="height: 30px; width: auto; margin-right: 10px;">
+
         <a class="navbar-brand" href="{% url 'chat-home' %}">Intra Chat</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#nav-menu" aria-controls="nav-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -48,6 +53,7 @@
                     <a class="nav-link" href="{% url 'chat-home' %}"><i class="fa fa-home"></i> </a>
                 </li>
             </ul>
+
 
             {% if user.is_authenticated %}
             <span><a class="text-light"  href="{% url 'chat-profile' %}"><i class="fa fa-user"></i> <b style="font-size: 20px;"> {{user.first_name}}</b></a></span> {% endif %}
@@ -71,6 +77,8 @@
 {% block footer %}{% endblock footer %}
 
 </html>
+
+
 
 
 
